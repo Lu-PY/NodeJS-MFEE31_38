@@ -1,6 +1,7 @@
 const express =require('express');
 const app =express();
 
+
 require('dotenv').config();
 const mysql2=require('mysql2/promise')
 
@@ -14,7 +15,13 @@ let pool = mysql2.createPool({
     connectionLimit: 10,
 });
 
-
+const cors=require('cors')
+app.use(cors(
+//     {
+//     origin:'*',
+    // *預設星號是所有來源都開放，真正環境不會使用，只會開放給對接要用的前端
+// }
+));
 
 // 4.15、6才把中間件挑回來有內建，之前需要自己裝
 // 設定express 處理靜態檔案
@@ -33,10 +40,10 @@ app.use((req,res,next)=>{
     req.mfee31 ='冰淇淋'
     next();
 });
-app.use((req,res,next)=>{
-    console.log('這裡是中間件2A');
-    next();
-});
+// app.use((req,res,next)=>{
+//     console.log('這裡是中間件2A');
+//     next();
+// });
 app.use((req,res,next)=>{
     console.log('這裡是中間件B');
     next();
