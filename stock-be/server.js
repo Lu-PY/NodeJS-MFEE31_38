@@ -1,9 +1,36 @@
 const express =require('express');
 const app =express();
+
+require('dotenv').config();
+const mysql2=require('mysql2/promise')
+
+let pool = mysql2.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PWD,
+    database: process.env.DB_NAME,
+    // 限制 pool 連線數的上限
+    connectionLimit: 10,
+});
+
+
+
+// 4.15、6才把中間件挑回來有內建，之前需要自己裝
+// 設定express 處理靜態檔案
+// ->express 內建 ->不用安裝任何東西
+// localhost:3001/
+// app.use(express.static('./static'));
+// localhost:3001/2048/
+// app.use(express.static('./static'))
+app.use('/2048', express.static('./static'));
+
 // 中間件
+// middlerware=> pipeline pattern
 // 要是use沒有next收到往下會卡住，如果有res.send就會停駐
 app.use((req,res,next)=>{
     console.log('這裡是中間件1');
+    req.mfee31 ='冰淇淋'
     next();
 });
 app.use((req,res,next)=>{
@@ -19,22 +46,41 @@ app.use((req,res,next)=>{
 // get,post,put,patch,delete,option,head
 // 路由中間件，會對比網址有才會進去，use就直接進去
 app.get('/',(req,res,next)=>{
-    console.log('這裡是首頁')
+    console.log('這裡是首頁',req.mfee31)
     // req = request,res = response
-    res.send('Hello Express')
+    res.send('Hello Express123')
 });
-app.get('/test',(request,response)=>{
-    console.log('這裡是test頁1')
+app.get('/test',(req,res)=>{
+    console.log('這裡是test頁1',req.dt)
     // req = request,res = response
-    response.send('Hello test 1')
+    res.send('Hello test 1')
 });
+app.get('/api',(req,res,next)=>{
+    res.json({
+        name: 'John',
+        age: 18,
+      });
+    })
+// get api 資料庫的資料
+    app.get('/api/stocks', async (req, res, next) => {
+        // let results = await connection.query('SELECT * FROM stocks');
+        // let data = results[0];
+      
+        let [data] = await pool.query('SELECT * FROM stocks');
+        res.json(data);
+      });
+      
+
+
+
+
 // 放在所有路由中間件的後面
 // 因為前面都比不到就是沒有這個網址
 // 因為中間件照程式碼順序而達成的效果
 app.use((req,res,next)=>{ 
     console.log('這裡是404')
     // req = request,res = response
-    response.send('No website')
+    res.send('No website')
 });
 
 // port 只要大於20??都行
